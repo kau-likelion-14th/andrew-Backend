@@ -1,6 +1,5 @@
 package likelion14th.lte.global.config;
 
-import aQute.bnd.annotation.jpms.Open;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -21,7 +20,7 @@ public class SwaggerConfig {
         Info apiInfo = new Info()
                 .version("v1.0.0")
                 .title("LTE API")
-                .description("LTE API Documentation");
+                .description("Lte API Documentation");
 
         String jwtSchemeName = "BearerToken";
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
@@ -34,13 +33,17 @@ public class SwaggerConfig {
 
         Server localServer = new Server()
                 .url("http://localhost:8080")
-                .description("Local Server");
+                .description("Lte Local Server");
+
+        Server httpServer = new Server()
+                .url("http://Lte-dev-env-2.eba-xaqgpxhu.ap-northeast-2.elasticbeanstalk.com")
+                .description("LTE HTTP Server");
 
         return new OpenAPI()
                 .info(apiInfo)
                 .addSecurityItem(securityRequirement)
                 .components(components)
-                .servers(List.of(localServer));
+                .servers(List.of(localServer, httpServer));
     }
 
     @Bean
