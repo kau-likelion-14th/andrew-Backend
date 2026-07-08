@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequestMapping("api/follow")
@@ -31,7 +33,6 @@ public class FollowController {
             @RequestBody FollowUserRequest followUserRequest
     ) {
         FollowUserResponse response = followService.followUser(userId, followUserRequest.getToUserId());
-
         return ApiResponse.onSuccess(SuccessCode.FOLLOW_ADD_SUCCESS, response);
     }
 
@@ -44,5 +45,41 @@ public class FollowController {
     ) {
         Page<FollowUserResponse> responses = followService.searchCanFollowers(userId, nickname, pageable);
         return ApiResponse.onSuccess(SuccessCode.FOLLOW_SEARCH_SUCCESS, responses);
+    }
+
+    // ================= 과제 추가 기능 =================
+
+    @DeleteMapping
+    @Operation(summary = "과제 1. 팔로우 취소", description = "대상 유저와의 팔로우 관계를 해제합니다.")
+    public ApiResponse<Void> unfollow(
+            @RequestParam Long userId,
+            @RequestBody FollowUserRequest followUserRequest
+    ) {
+        followService.unfollow(userId, followUserRequest.getToUserId());
+        return ApiResponse.onSuccess(SuccessCode.FOLLOW_DELETE_SUCCESS, null); // FOLLOW_2001 적용
+    }
+
+    @GetMapping("/followers")
+    @Operation(summary = "과제 2. 팔로워 목록 조회", description = "나를 팔로우하는 유저 목록을 반환합니다.")
+    public ApiResponse<List<FollowUserResponse>> getFollowers(@RequestParam Long userId) {
+        List<FollowUserResponse> responses = followService.getFollowers(userId);
+        return ApiResponse.onSuccess(SuccessCode.FOLLOW_LIST_GET_SUCCESS, responses); // FOLLOW_2002 적용
+    }
+
+    @GetMapping("/followings")
+    @Operation(summary = "과제 3. 팔로잉 목록 조회", description = "내가 팔로우하는 유저 목록을 반환합니다.")
+    public ApiResponse<List<FollowUserResponse>> getFollowings(@RequestParam Long userId) {
+        List<FollowUserResponse> responses = followService.getFollowings(userId);
+        return ApiResponse.onSuccess(SuccessCode.FOLLOW_LIST_GET_SUCCESS, responses); // FOLLOW_2002 적용
+    }
+
+    @GetMapping
+    @Operation(summary = "과제 4. 팔로우 가능 유저 목록 전체 페이징 조회", description = "아직 내가 팔로우하지 않은 유저 전체 목록을 페이징하여 조회합니다.")
+    public ApiResponse<Page<FollowUserResponse>> getCanFollowUsers(
+            @RequestParam Long userId,
+            @ParameterObject @PageableDefault(size = 10, page = 0) Pageable pageable
+    ) {
+        Page<FollowUserResponse> responses = followService.getCanFollowUsers(userId, pageable);
+        return ApiResponse.onSuccess(SuccessCode.FOLLOW_SEARCH_SUCCESS, responses); // FOLLOW_2003 적용
     }
 }

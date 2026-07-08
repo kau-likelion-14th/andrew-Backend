@@ -25,12 +25,11 @@ public class FollowService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
-    // 전성환#CODA, 전성환, #CODA
     private static UserNameDto getUserNameDto(String name) {
         if(!name.contains("#")){
             return new UserNameDto(name, null);
         }
-        String[] parts = name.split("#", 2);   // [전성환, CODA]
+        String[] parts = name.split("#", 2);
         if(parts[1].length() != 8) {
             throw new GeneralException(ErrorCode.INVALID_HANDLE_FORMAT);
         }
@@ -80,7 +79,7 @@ public class FollowService {
         } else {
             users = userRepository.findByUsernameContainingIgnoreCase(nameDto.userName(), pageable);
         }
-        // [유저1: 전성환, 유저2: 전유안] -> 하나씩 끄집어오면
+
         List<User> canFollowUsers = users
                 .getContent()
                 .stream()
@@ -88,7 +87,69 @@ public class FollowService {
                 .filter(target -> !followRepository.existsByFromUserAndToUser(user, target))
                 .toList();
 
-        // 리스트 페이지 같이 여러 개 담는거 .map
         return new PageImpl<>(canFollowUsers, pageable, canFollowUsers.size()).map(FollowUserResponse::from);
+    }
+
+    // ================= 과제 추가 기능 =================
+
+    // 과제 1. 언팔로우 (팔로우 취소)
+    @Transactional
+    public void unfollow(Long userId, Long toUserId) {
+        // 1. 자기 자신 언팔로우 예외 체크
+        if (userId.equals(toUserId)) {
+            throw new GeneralException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED); // FOLLOW_4001 매핑
+        }
+
+        // 2. 본인(요청자) 존재 검증
+        User fromUser = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND)); // USER_4041 매핑
+
+        // 3. 대상 유저 존재 검증
+        User toUser = userRepository.findById(toUserId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.FOLLOW_TARGET_NOT_FOUND)); // FOLLOW_4041 매핑
+
+        // 4. 기존 팔로우 관계 존재 여부 확인 후 삭제
+        Follow follow = followRepository.findByFromUserAndToUser(fromUser, toUser)
+                .orElseThrow(() -> new GeneralException(ErrorCode.FOLLOW_NOT_FOUND)); // FOLLOW_4042 매핑
+
+        followRepository.delete(follow);
+    }
+
+    // 과제 2. 팔로워 목록 조회
+    @Transactional(readOnly = true)
+    public List<FollowUserResponse> getFollowers(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND)); // USER_4041 매핑
+
+        // 나를 타겟으로 삼은 데이터(toUser == 나) 조회 -> 팔로우를 건 사람(fromUser)의 정보를 반환
+        return followRepository.findAllByToUser(user).stream()
+                .map(follow -> FollowUserResponse.from(follow.getFromUser()))
+                .toList();
+    }
+
+    // 과제 3. 팔로잉 목록 조회
+    @Transactional(readOnly = true)
+    public List<FollowUserResponse> getFollowings(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND)); // USER_4041 매핑
+
+        // 내가 팔로우를 건 데이터(fromUser == 나) 조회 -> 팔로우를 당한 사람(toUser)의 정보를 반환
+        return followRepository.findAllByFromUser(user).stream()
+                .map(follow -> FollowUserResponse.from(follow.getToUser()))
+                .toList();
+    }
+
+    // 과제 4. 팔로우 가능 유저 목록 전체 페이징 조회
+    @Transactional(readOnly = true)
+    public Page<FollowUserResponse> getCanFollowUsers(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
+            throw new GeneralException(ErrorCode.USER_NOT_FOUND); // USER_4041 매핑
+        }
+
+        // 실제 UserRepository에 정의된 findCanFollow 메서드명으로 올바르게 호출
+        Page<User> canFollowUsersPage = userRepository.findCanFollow(userId, pageable);
+
+        // Page 구조를 그대로 유지하면서 DTO로 변환하여 반환
+        return canFollowUsersPage.map(FollowUserResponse::from);
     }
 }
