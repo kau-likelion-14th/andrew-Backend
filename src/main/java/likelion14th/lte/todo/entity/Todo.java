@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -43,4 +44,33 @@ public class Todo extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private WeekEnum week;
+
+    @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TodoDate> todoDates = new ArrayList<>();
+
+    public static Todo create(User user, String description, boolean routineEnabled,
+                              LocalDate startDate, LocalDate endDate, Category category, WeekEnum week)
+    {
+        Todo todo = new Todo();
+        todo.user = user;
+        todo.description = description;
+        todo.routineEnabled = routineEnabled;
+        todo.startDate = startDate;
+        todo.endDate = endDate;
+        todo.category = category;
+        todo.week = week;
+
+        return todo;
+    }
+
+    public void update(String description, boolean routineEnabled,
+                       LocalDate startDate, LocalDate endDate, Category category, WeekEnum week)
+    {
+        this.description = description;
+        this.routineEnabled = routineEnabled;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.category = category;
+        this.week = week;
+    }
 }
