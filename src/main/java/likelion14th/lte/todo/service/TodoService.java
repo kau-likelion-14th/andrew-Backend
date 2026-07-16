@@ -145,7 +145,7 @@ public class TodoService {
 
     @Transactional
     public TodoDetailResponse updateTodoDetail(
-            Long userId, Long todoId, TodoUpdateRequest request, LocalDate date
+            Long userId, Long todoId, TodoUpdateRequest request
     ) {
         User user = getUserOrThrow(userId);
         Todo todo = getTodoOrThrow(todoId);
