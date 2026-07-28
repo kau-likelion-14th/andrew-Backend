@@ -2,12 +2,13 @@ package likelion14th.lte.todo.service;
 
 import likelion14th.lte.todo.dto.response.TodoCalendarMonthResponse;
 import likelion14th.lte.todo.entity.TodoDate;
-import likelion14th.lte.todo.repository.TodoDateRepository;
 import likelion14th.lte.user.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import likelion14th.lte.todo.repository.TodoDateRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
