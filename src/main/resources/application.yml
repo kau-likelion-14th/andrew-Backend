@@ -22,6 +22,11 @@ spring:
       display-request-duration: true
       operations-sorter: method
 
+# YouTube Data API
+youtube:
+  api-key: ${YOUTUBE_API_KEY}
+  api-base: https://www.googleapis.com/youtube/v3
+
 ---
 # local profile
 spring:

@@ -44,6 +44,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
 
+                                // YouTube 세션: 로그인 구현 전 더미 User 사용
+                                "/api/youtube/**",
+
                                 "/health"
 
                         ).permitAll()
