@@ -3,6 +3,7 @@ package likelion14th.lte.user.entity;
 import jakarta.persistence.*;
 import likelion14th.lte.Entity.BaseEntity;
 import likelion14th.lte.follow.entity.Follow;
+import likelion14th.lte.statistic.entity.Statistic;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,7 +51,26 @@ public class User extends BaseEntity {
         this.followings = new ArrayList<>();
     }
 
+    // User.java 내부 추가/수정 사항
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "statistic_id")
+    private Statistic statistic;
+
+    @Builder
+    public User(String username, String userTag, String introduction, String profileImage) {
+        this.username = username;
+        this.userTag = userTag;
+        this.introduction = introduction;
+        this.profileImage = profileImage;
+        // 도메인 규칙: 유저가 생성되면 통계 데이터도 자동 생성
+        this.statistic = Statistic.create();
+    }
+
     public void updateIntroduction(String introduction) {
         this.introduction = introduction;
+    }
+
+    public void setStatistic(Statistic statistic) {
+        this.statistic = statistic;
     }
 }

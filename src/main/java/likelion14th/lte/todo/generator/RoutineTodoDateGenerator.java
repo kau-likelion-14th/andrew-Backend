@@ -2,8 +2,6 @@ package likelion14th.lte.todo.generator;
 
 import likelion14th.lte.todo.entity.Todo;
 import likelion14th.lte.todo.entity.TodoDate;
-import likelion14th.lte.todo.repository.TodoDateRepository;
-import likelion14th.lte.todo.repository.TodoRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,11 +9,12 @@ import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import likelion14th.lte.todo.repository.TodoDateRepository;
 
 @Component
 @Slf4j

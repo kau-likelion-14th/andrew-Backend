@@ -12,7 +12,6 @@ import likelion14th.lte.todo.entity.Todo;
 import likelion14th.lte.todo.entity.TodoDate;
 import likelion14th.lte.todo.entity.WeekEnum;
 import likelion14th.lte.todo.generator.RoutineTodoDateGenerator;
-import likelion14th.lte.todo.repository.TodoDateRepository;
 import likelion14th.lte.todo.repository.TodoRepository;
 import likelion14th.lte.user.entity.User;
 import likelion14th.lte.user.repository.UserRepository;
@@ -20,6 +19,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import likelion14th.lte.todo.repository.TodoDateRepository;
 
 import java.time.LocalDate;
 import java.util.List;
