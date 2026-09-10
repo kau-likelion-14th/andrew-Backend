@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import likelion14th.lte.Entity.BaseEntity;
 import likelion14th.lte.follow.entity.Follow;
 import likelion14th.lte.statistic.entity.Statistic;
+import likelion14th.lte.youtube.domain.SavedSong;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,6 +43,9 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "fromUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followings;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SavedSong> savedSongs;
+
     @Builder(access = AccessLevel.PUBLIC)
     private User(String username, String userTag, String introduction, String profileImage, String s3Image) {
         this.username = username;
@@ -49,6 +53,7 @@ public class User extends BaseEntity {
         this.introduction = introduction;
         this.followers = new ArrayList<>();
         this.followings = new ArrayList<>();
+        this.savedSongs = new ArrayList<>();
     }
 
     // User.java 내부 추가/수정 사항
@@ -64,6 +69,9 @@ public class User extends BaseEntity {
         this.profileImage = profileImage;
         // 도메인 규칙: 유저가 생성되면 통계 데이터도 자동 생성
         this.statistic = Statistic.create();
+        this.followers = new ArrayList<>();
+        this.followings = new ArrayList<>();
+        this.savedSongs = new ArrayList<>();
     }
 
     public void updateIntroduction(String introduction) {
