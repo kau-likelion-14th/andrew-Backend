@@ -42,12 +42,14 @@ public class JwtProvider {
 
     public String createRefreshToken(Long userId) {
         Instant now = Instant.now();
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(String.valueOf(userId))
                 .issuedAt(now)
-                .expiresAt(now.plusMillis(accessExpMs))
+                .expiresAt(now.plusMillis(refreshExpMs))
                 .claim("type", "REFRESH")
                 .build();
+
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
