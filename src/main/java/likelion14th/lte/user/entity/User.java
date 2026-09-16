@@ -3,6 +3,7 @@ package likelion14th.lte.user.entity;
 import jakarta.persistence.*;
 import likelion14th.lte.Entity.BaseEntity;
 import likelion14th.lte.follow.entity.Follow;
+import likelion14th.lte.login.domain.RefreshToken;
 import likelion14th.lte.statistic.entity.Statistic;
 import likelion14th.lte.youtube.domain.SavedSong;
 import lombok.AccessLevel;
@@ -34,6 +35,9 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String profileImage;
 
+    @Column(unique = true)
+    private String providerId;
+
     @Column(columnDefinition = "TEXT")
     private String s3Image;
 
@@ -46,23 +50,18 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SavedSong> savedSongs;
 
-    @Builder(access = AccessLevel.PUBLIC)
-    private User(String username, String userTag, String introduction, String profileImage, String s3Image) {
-        this.username = username;
-        this.userTag = userTag;
-        this.introduction = introduction;
-        this.followers = new ArrayList<>();
-        this.followings = new ArrayList<>();
-        this.savedSongs = new ArrayList<>();
-    }
 
     // User.java 내부 추가/수정 사항
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "statistic_id")
     private Statistic statistic;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private RefreshToken refreshToken;
+
     @Builder
-    public User(String username, String userTag, String introduction, String profileImage) {
+    public User(String providerId, String username, String userTag, String introduction, String profileImage) {
+        this.providerId = providerId;
         this.username = username;
         this.userTag = userTag;
         this.introduction = introduction;
