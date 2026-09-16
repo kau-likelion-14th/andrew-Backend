@@ -20,7 +20,7 @@ public class StatisticController {
 
     @GetMapping
     @Operation(summary = "과제 1. 통계 조회 API", description = "유저의 streak, 최근 30일 완료율, 최다 투두 완료 요일을 반환합니다.")
-    public ApiResponse<StatisticResponse> getStatistic(@RequestParam Long userId) {
+    public ApiResponse<StatisticResponse> getStatistic(@AuthenticationPrincipal Jwt jwt) {
         StatisticResponse response = statisticService.getStatistic(userId);
         return ApiResponse.onSuccess(SuccessCode.STATISTICS_GET_SUCCESS, response);
     }
