@@ -8,6 +8,8 @@ import likelion14th.lte.statistic.dto.StatisticResponse;
 import likelion14th.lte.statistic.service.StatisticService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,7 +22,8 @@ public class StatisticController {
 
     @GetMapping
     @Operation(summary = "과제 1. 통계 조회 API", description = "유저의 streak, 최근 30일 완료율, 최다 투두 완료 요일을 반환합니다.")
-    public ApiResponse<StatisticResponse> getStatistic(@RequestParam Long userId) {
+    public ApiResponse<StatisticResponse> getStatistic(@AuthenticationPrincipal Jwt jwt) {
+        Long userId = Long.valueOf(jwt.getSubject());
         StatisticResponse response = statisticService.getStatistic(userId);
         return ApiResponse.onSuccess(SuccessCode.STATISTICS_GET_SUCCESS, response);
     }
