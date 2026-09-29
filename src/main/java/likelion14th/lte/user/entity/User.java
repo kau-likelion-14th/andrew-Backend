@@ -39,7 +39,7 @@ public class User extends BaseEntity {
     private String providerId;
 
     @Column(columnDefinition = "TEXT")
-    private String s3Image;
+    private String s3ImageKey;
 
     @OneToMany(mappedBy = "toUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followers;
@@ -60,17 +60,22 @@ public class User extends BaseEntity {
     private RefreshToken refreshToken;
 
     @Builder
-    public User(String providerId, String username, String userTag, String introduction, String profileImage) {
+    public User(String providerId, String username, String userTag, String introduction, String profileImage, String s3ImageKey) {
         this.providerId = providerId;
         this.username = username;
         this.userTag = userTag;
         this.introduction = introduction;
         this.profileImage = profileImage;
+        this.s3ImageKey = s3ImageKey;
         // 도메인 규칙: 유저가 생성되면 통계 데이터도 자동 생성
         this.statistic = Statistic.create();
         this.followers = new ArrayList<>();
         this.followings = new ArrayList<>();
         this.savedSongs = new ArrayList<>();
+    }
+    public void fixUserProfile(String s3ImageUrl, String s3ImageKey) {
+        this.s3ImageKey = s3ImageKey;
+        this.profileImage = s3ImageUrl;
     }
 
     public void updateIntroduction(String introduction) {
