@@ -3,12 +3,13 @@ package likelion14th.lte.user.service;
 import likelion14th.lte.global.api.ErrorCode;
 import likelion14th.lte.global.exception.GeneralException;
 import likelion14th.lte.user.dto.request.CreateTestUserRequest;
+import likelion14th.lte.user.dto.request.UserIntroRequest;
 import likelion14th.lte.user.dto.response.UserProfileResponse;
 import likelion14th.lte.user.entity.User;
 import likelion14th.lte.user.repository.UserRepository;
 import likelion14th.lte.utils.Image.ImageUtil;
-import likelion14th.lte.utils.S3Dto;
-import likelion14th.lte.utils.S3Utils;
+import likelion14th.lte.utils.S3.S3Dto;
+import likelion14th.lte.utils.S3.S3Utils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -74,6 +75,32 @@ public class UserProfileService {
         } catch (UtilException e) {
             throw GeneralException.of(mapToErrorCode(e.getReason()));
         }
+    }
+
+    @Transactional
+    public UserProfileResponse deleteProfileImage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
+
+        // 프로필 이미지가 없어도 성공 처리
+        if (user.getS3ImageKey() != null) {
+            try {
+                s3Utils.deleteFile(user.getS3ImageKey());
+            } catch (UtilException e) {
+                throw GeneralException.of(mapToErrorCode(e.getReason()));
+            }
+        }
+        user.fixUserProfile(null, null);
+        return UserProfileResponse.from(user);
+    }
+
+    @Transactional
+    public UserProfileResponse updateIntroduction(Long userId, UserIntroRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
+
+        user.updateIntroduction(request.getIntroduce());
+        return UserProfileResponse.from(user);
     }
 
     private ErrorCode mapToErrorCode(UtilException.Reason reason) {

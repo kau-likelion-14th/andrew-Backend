@@ -1,4 +1,4 @@
-package likelion14th.lte.utils;
+package likelion14th.lte.utils.S3;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package likelion14th.lte.utils;
+package likelion14th.lte.utils.S3;
 
 import likelion14th.lte.global.config.AmazonConfig;
 import likelion14th.lte.utils.exception.UtilException;

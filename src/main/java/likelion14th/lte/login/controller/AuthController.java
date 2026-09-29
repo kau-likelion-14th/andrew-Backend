@@ -26,7 +26,7 @@ import java.time.Duration;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthContorller {
+public class AuthController {
 
     private final AuthService authService;
 
