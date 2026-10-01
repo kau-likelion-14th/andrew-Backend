@@ -25,26 +25,9 @@ import java.util.List;
 @Transactional
 public class YouTubeService {
 
-    // TODO: 카카오 로그인 구현 후 더미 사용자 대신 실제 로그인 사용자로 교체
-    private static final String DUMMY_LOGIN_ID = "youtube_dummy";
-    private static final String DUMMY_USERNAME = "YouTube Demo User";
-    private static final String DUMMY_USER_TAG = "YTDUMMY01";
-
     private final YouTubeClient youTubeClient;
     private final SavedSongRepository savedSongRepository;
     private final UserRepository userRepository;
-
-    // 카카오 로그인 전 임시 사용자. 최초 호출 시 DB에 한 번 생성하고, 이후에는 같은 사용자를 계속 사용합니다.
-    private User getDummyUser() {
-        return userRepository.findByUsername(DUMMY_USERNAME)
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
-                                .username(DUMMY_USERNAME)
-                                .userTag(DUMMY_USER_TAG)
-                                .introduction("YouTube 세션용 더미 사용자")
-                                .build()
-                ));
-    }
 
     @Transactional(readOnly = true)
     public List<YouTubeSongItemResponse> searchSongs(String query, int limit) {
@@ -75,12 +58,13 @@ public class YouTubeService {
         return result;
     }
 
-    public SavedSongResponse saveSong(String songId) {
+    public SavedSongResponse saveSong(Long userId, String songId) {
         if (songId == null || songId.isBlank()) {
             throw new GeneralException(ErrorCode.BAD_REQUEST);
         }
 
-        User user = getDummyUser();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
         if (savedSongRepository.existsByUserAndSongId(user, songId)) {
             throw new GeneralException(ErrorCode.SONG_ALREADY_SAVED);
@@ -117,8 +101,9 @@ public class YouTubeService {
     }
 
     @Transactional(readOnly = true)
-    public List<SavedSongResponse> mySavedSongs() {
-        User user = getDummyUser();
+    public List<SavedSongResponse> mySavedSongs(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
         return savedSongRepository.findAllByUserOrderBySavedAtDesc(user)
                 .stream()
@@ -126,8 +111,9 @@ public class YouTubeService {
                 .toList();
     }
 
-    public void deleteSavedSong(String songId) {
-        User user = getDummyUser();
+    public void deleteSavedSong(Long userId, String songId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
         SavedSong savedSong = savedSongRepository.findByUserAndSongId(user, songId)
                 .orElseThrow(() -> new GeneralException(ErrorCode.SONG_NOT_FOUND));
