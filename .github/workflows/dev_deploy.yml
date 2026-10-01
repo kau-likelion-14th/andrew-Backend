@@ -62,8 +62,7 @@ jobs:
         run : |
           unzip -l deploy/deploy.zip | head -n 50
           
-          unzip -l deploy/deploy.zip | egrep -i "pom.xml|Buildfile|src/|repository/"
-          && exit 1 || echo "OK: no sample source"
+          unzip -l deploy/deploy.zip | egrep -i "pom.xml|Buildfile|src/|repository/" && exit 1 || echo "OK: no sample source"
 
       - name : Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v20
