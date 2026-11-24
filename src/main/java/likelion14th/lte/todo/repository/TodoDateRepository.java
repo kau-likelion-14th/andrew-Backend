@@ -19,6 +19,9 @@ public interface TodoDateRepository extends JpaRepository<TodoDate, Long> {
 
     List<TodoDate> findAllByTodo_User_IdAndDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 
+    // 특정 날짜까지의 전체 투두 기록 조회
+    List<TodoDate> findAllByTodo_User_IdAndDateLessThanEqual(Long userId, LocalDate date);
+
     // 특정 날짜의 완료/미완료 투두 존재 여부 확인
     boolean existsByTodo_User_IdAndDateAndCompleted(Long userId, LocalDate date, boolean completed);
 
