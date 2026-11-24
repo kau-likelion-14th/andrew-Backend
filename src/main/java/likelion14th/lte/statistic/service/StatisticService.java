@@ -6,6 +6,8 @@ import likelion14th.lte.global.exception.GeneralException;
 import likelion14th.lte.statistic.dto.response.StatisticResponse;
 import likelion14th.lte.statistic.entity.StatWeek;
 import likelion14th.lte.statistic.entity.Statistic;
+import likelion14th.lte.statistic.entity.WeekEnum;
+import likelion14th.lte.todo.entity.TodoDate;
 import likelion14th.lte.todo.repository.TodoDateRepository;
 import likelion14th.lte.user.entity.User;
 import likelion14th.lte.user.repository.UserRepository;
@@ -17,6 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,21 +33,63 @@ public class StatisticService {
     private final EntityManager entityManager;
 
     // 과제 1: 통계 조회 API Service
-    @Transactional
+    // 투두 완료 직후에도 반영되도록 투두 기록(오늘 포함)으로 조회 시점에 계산
+    @Transactional(readOnly = true)
     public StatisticResponse getStatistic(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
-        Statistic statistic = user.getStatistic();
+        LocalDate today = LocalDate.now();
+        List<TodoDate> todoDates =
+                todoDateRepository.findAllByTodo_User_IdAndDateLessThanEqual(user.getId(), today);
 
-        // 기존 유저 데이터여서 statistic이 null인 경우 방어 로직
-        if (statistic == null) {
-            statistic = Statistic.create();
-            user.setStatistic(statistic);
-            userRepository.save(user);    // CascadeType.ALL로 인해 Statistic도 같이 저장됨
+        // 날짜별 성공 여부: 그날의 투두를 모두 완료했으면 성공
+        Map<LocalDate, Boolean> successByDate = todoDates.stream()
+                .collect(Collectors.toMap(TodoDate::getDate, TodoDate::isCompleted, Boolean::logicalAnd));
+
+        return new StatisticResponse(
+                calculateStreak(successByDate, today),
+                calculateMonthPercent(todoDates, today),
+                calculateMostTodoWeek(successByDate)
+        );
+    }
+
+    // 오늘부터 거꾸로 연속 성공한 날 수. 오늘은 아직 끝나지 않았으므로 미완료여도 어제까지의 기록은 유지
+    private int calculateStreak(Map<LocalDate, Boolean> successByDate, LocalDate today) {
+        LocalDate date = successByDate.getOrDefault(today, false) ? today : today.minusDays(1);
+        int streak = 0;
+        while (successByDate.getOrDefault(date, false)) {
+            streak++;
+            date = date.minusDays(1);
         }
+        return streak;
+    }
 
-        return StatisticResponse.from(statistic);
+    // 오늘을 포함한 최근 30일 완료율
+    private int calculateMonthPercent(List<TodoDate> todoDates, LocalDate today) {
+        LocalDate startDate = today.minusDays(29);
+        List<TodoDate> recent = todoDates.stream()
+                .filter(todoDate -> !todoDate.getDate().isBefore(startDate))
+                .toList();
+        if (recent.isEmpty()) {
+            return 0;
+        }
+        long completedCount = recent.stream().filter(TodoDate::isCompleted).count();
+        return (int) (completedCount * 100 / recent.size());
+    }
+
+    // 성공한 날이 가장 많은 요일. 성공한 날이 없으면 null, 같으면 앞선 요일
+    private WeekEnum calculateMostTodoWeek(Map<LocalDate, Boolean> successByDate) {
+        Map<WeekEnum, Long> countByWeek = successByDate.entrySet().stream()
+                .filter(Map.Entry::getValue)
+                .collect(Collectors.groupingBy(
+                        entry -> WeekEnum.from(entry.getKey().getDayOfWeek()), Collectors.counting()));
+
+        return Arrays.stream(WeekEnum.values())
+                .filter(countByWeek::containsKey)
+                .reduce((first, second) ->
+                        countByWeek.get(second) > countByWeek.get(first) ? second : first)
+                .orElse(null);
     }
 
     // 과제 2: 단일 유저 통계 갱신 로직 (어제 하루 기준)
@@ -59,6 +107,12 @@ public class StatisticService {
         boolean isSuccess = hasCompleted && !hasFailed;
 
         Statistic statistic = user.getStatistic();
+
+        // 통계가 없는 기존 유저 때문에 전체 배치가 실패하지 않도록 생성
+        if (statistic == null) {
+            statistic = Statistic.create();
+            user.setStatistic(statistic);
+        }
 
         // 2. streak 갱신
         statistic.updateStreak(isSuccess);
